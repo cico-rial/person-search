@@ -9,6 +9,8 @@ import random
 
 random.seed(42) # set the seed for repeatibility
 
+SAMPLE_LINES = True
+
 # utils function to truncate coordinates to 4 digit precision
 def truncate(n, digits = 4):
     str_n = str(n)
@@ -18,10 +20,8 @@ def truncate(n, digits = 4):
 
 frame_train = sio.loadmat('dataset/frame_train.mat')
 frame_test = sio.loadmat('dataset/frame_test.mat')
-
 id_train = sio.loadmat("dataset/ID_train.mat")
 id_test = sio.loadmat("dataset/ID_test.mat")
-
 
 ids, xs, ys, ws, hs, fs, lines = [],[],[],[],[],[],[] 
 
@@ -55,37 +55,43 @@ for frame in frame_train.get("img_index_train"):
 ids, lines = map(list, zip(*sorted(zip(ids, lines), key=lambda x: x[0]))) # ordering for id (not needed but why not)
 unique_ids = np.unique(ids)
 
-iter_ids = iter(unique_ids) # to get next id
-next(iter_ids) # it must be one step ahead
+if SAMPLE_LINES:
+    iter_ids = iter(unique_ids) # to get next id
+    next(iter_ids) # it must be one step ahead
 
-n_query_per_id = 3
-sampled_lines = []
+    n_query_per_id = 3 # how many queries per id to save
+    sampled_lines = []
 
-# sample only 3 queries per id to create a reasonable training set
-for id in unique_ids:
-    first_idx = ids.index(id)
-    try:
-        last_idx = ids.index(next(iter_ids))
-    except StopIteration:
-        last_idx = ids.index(ids[-1])
+    # sample only 3 queries per id to create a reasonable training set
+    for id in unique_ids:
+        first_idx = ids.index(id)
+        try:
+            last_idx = ids.index(next(iter_ids))
+        except StopIteration:
+            last_idx = ids.index(ids[-1])
 
-    sampled_line_count = 0
-    previous_sampled_line_idx = None
-    while sampled_line_count < n_query_per_id:
-        sampled_line_idx = random.randint(first_idx, last_idx)
-        if sampled_line_idx != previous_sampled_line_idx:
-            sampled_line = lines[sampled_line_idx]
-            sampled_lines.append(sampled_line)
-            print(sampled_line)
-        previous_sampled_line_idx = sampled_line_idx
-        sampled_line_count += 1
+        sampled_line_count = 0
+        previous_sampled_line_idx = None
+        while sampled_line_count < n_query_per_id:
+            sampled_line_idx = random.randint(first_idx, last_idx)
+            if sampled_line_idx != previous_sampled_line_idx:
+                sampled_line = lines[sampled_line_idx]
+                sampled_lines.append(sampled_line)
+                print(sampled_line)
+            previous_sampled_line_idx = sampled_line_idx
+            sampled_line_count += 1
+    
+    lines = sampled_lines
+
+else:
+    lines = lines # we do not sample
 
 # query file name to save sampled lines
 query_info_train_file = "dataset/query_info_train.txt"
 
 # write lines to a file
 with open(query_info_train_file, "w") as f:
-    f.write("\n".join(sampled_lines))
+    f.write("\n".join(lines))
 
 # directories
 img_dir = Path("dataset/frames")
@@ -134,3 +140,5 @@ with open(query_info_train_file, "r") as f:
         cropped.save(output_path)
 
         print(f"Saved: {output_path}")
+
+print(f"Saved {len(lines)} training queries.")
