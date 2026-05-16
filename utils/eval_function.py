@@ -29,6 +29,7 @@ def eval_search_prw(
     query_box_feats,
     det_thresh,
     ignore_cam_id=True,
+    validate_detector_only=False
 ):
     """
     Evaluate person search performance on PRW dataset.
@@ -43,6 +44,10 @@ def eval_search_prw(
         ignore_cam_id (bool): whether to ignore camera ID during evaluation. If set to False,
                             gallery images from the same camera as the query will be excluded. Default: True.
     """
+    if validate_detector_only:
+        gallery_feats   = [np.zeros((det.shape[0], 4)) for det in gallery_dets] # null embedding
+        query_box_feats = [np.zeros(4) for det in range(len(query_dataset))] # null embedding
+
     assert len(gallery_dataset) == len(gallery_dets)
     assert len(gallery_dataset) == len(gallery_feats)
     assert len(query_dataset) == len(query_box_feats)
@@ -173,6 +178,11 @@ def eval_search_prw(
                 }
             )
         ret["results"].append(new_entry)
+    
+    print(f"recall rate: {recall_rate}")
+
+    if validate_detector_only:
+        return recall_rate # prints and returns the recall_rate only
 
     print("search ranking:")
     mAP = np.mean(aps)
@@ -182,8 +192,6 @@ def eval_search_prw(
         print("  top-{:2d} = {:.2%}".format(k, accs[i]))
 
     # write_json(ret, "vis/results.json")
-
-    print(f"recall rate: {recall_rate}")
 
     ret["mAP"] = np.mean(aps)
     ret["accs"] = accs
