@@ -1,3 +1,11 @@
+"""
+Python translation of dataset/generate_query.m
+
+sources:
+- https://claude.ai
+- https://chatgpt.com
+"""
+
 from pathlib import Path
 from PIL import Image
 import scipy.io as sio
