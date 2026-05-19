@@ -1,15 +1,27 @@
 from pathlib import Path
-
 from PIL import Image
-
 import scipy.io as sio
 import numpy as np
 import math
 import random
+import argparse
 
-random.seed(42) # set the seed for repeatibility
-
-SAMPLE_LINES = True
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate query train from train annotations and gallery frames. Translated from generate_query.m"
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Seed for random generators. Useful only if sample = True",
+    )
+    parser.add_argument(
+        "--sample",
+        action="store_true",
+        help="Sample 3 queries per id to avoid too many query boxes. Mainly used for experimentation",
+    )
+    return parser.parse_args()
 
 # utils function to truncate coordinates to 4 digit precision
 def truncate(n, digits = 4):
@@ -17,6 +29,12 @@ def truncate(n, digits = 4):
     dot_idx = str_n.find(".")
     return float(str_n[:dot_idx + digits + 1])
 
+args = parse_args()
+
+SAMPLE_LINES = args.sample
+SEED = args.seed
+
+random.seed(SEED) # set the seed for repeatibility
 
 frame_train = sio.loadmat('dataset/frame_train.mat')
 frame_test = sio.loadmat('dataset/frame_test.mat')
