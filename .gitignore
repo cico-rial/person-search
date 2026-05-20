@@ -4,6 +4,7 @@ dataset/
 
 # Cache and checkpoints
 checkpoints/
+detectors/
 *cache/
 
 # Python-generated files
