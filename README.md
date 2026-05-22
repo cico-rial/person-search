@@ -17,47 +17,39 @@ gallery frames.
    similarity to the query embedding.
 
 The main deliverable, `fine_tuned_person_search.ipynb`, runs a 6-way ablation (2 detectors
-× 3 losses) and scores each configuration with `eval_search_prw` (mAP and top-1 accuracy).
+× 3 losses) and scores each configuration with `eval_search_prw` (mAP and top-1 accuracy/recall@1).
 
 ## Setup
 
-Requires **Python 3.13** and [`uv`](https://docs.astral.sh/uv/).
+The code has been run on a local ubuntu machine with NVIDIA GeForce RTX 4070 GPU.
+Requires **Python 3.13.5** and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 # 1. Clone the repository
-git clone <REPO-URL>
-cd person-re-identification
+git clone https://github.com/cico-rial/person-search.git
+cd person-search
 
-# 2. Create the virtual environment (uv picks up Python 3.13 from .python-version)
-uv venv
+# 2. Create the virtual environment with Python 3.13.5
+uv venv --python 3.13.5
 
 # 3. Install the locked dependencies
 uv sync
 ```
 
 The PRW dataset is downloaded and extracted automatically by the first notebook cells, so
-no manual dataset step is needed (a Kaggle-hosted archive of ~1 GB).
-
-Launch the notebook with:
-
-```bash
-uv run jupyter lab        # then open fine_tuned_person_search.ipynb
-```
+no manual dataset step is needed.
 
 ## Project structure
 
 ```
-person-re-identification/
+person-search/
 ├── fine_tuned_person_search.ipynb   # main deliverable: fine-tuned person search + ablation
 ├── zero_shot_person_search.ipynb    # sibling notebook: pure zero-shot variant
-├── solution.ipynb                   # earlier solution notebook
 ├── generate_query_train.py          # crops labelled training persons into dataset/query_box_train/
-├── gallery_caps_B.json              # cached crop captions used by the zero-shot notebook
 ├── utils/
 │   └── eval_function.py             # provided PRW evaluation function (mAP / recall), lightly patched
 ├── pyproject.toml                   # project metadata and dependencies
 ├── uv.lock                          # locked dependency versions
-├── .python-version                  # pins Python 3.13
 │
 ├── dataset/                         # PRW dataset — auto-downloaded by the notebook
 ├── detectors/                       # detector weights (yolo12s.pt, rf-detr-base.pth) — auto-downloaded
@@ -67,7 +59,7 @@ person-re-identification/
 
 ## Populating `checkpoints/` and `finetune_cache/`
 
-Running training and feature extraction from scratch is slow (GPU, ~tens of minutes).
+Running training and feature extraction from scratch is slow.
 To reproduce the notebook results without re-running everything, download the pre-computed
 folders and place them at the repository root.
 
@@ -80,12 +72,8 @@ checkpoints/        # dinov3_finetune_{arcface,triplet,ntxent}.pt  (+ matching .
 finetune_cache/     # gallery_dets_*.npy, gallery_vis_*.npy, query_vis_*.npy, results_*.json
 ```
 
-Extract it so the two folders sit next to the notebook:
+Copy the archive in your local installation.
 
-```bash
-# example — adjust to the archive name/format you publish
-unzip person-search-cache.zip -d .
-```
 
 Result:
 
@@ -100,5 +88,3 @@ defaults (`PERFORM_TRAINING = False`): it loads the checkpoints and cached featu
 of recomputing them. To retrain or recompute from scratch instead, set `PERFORM_TRAINING = True`.
 
 ---
-
-> Replace `<REPO-URL>` and `<INSERT-DOWNLOAD-LINK-HERE>` with the real URLs once available.
