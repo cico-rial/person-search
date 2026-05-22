@@ -3,6 +3,12 @@
 # - Removed code related to CBGM (Context Bipartite Graph Matching)
 # - Adjusted top-k accuracy calculation to only consider top-1 accuracy
 # - Clarified function docstring and added recall rate scaling explanation
+# Additional modification made by the author of this repo (Leonardo Chiarioni)
+# - Exposed the query pid in the result dictionary
+# - Exposed the recall_rate to evaluate the detector only (when validate_detector_only=True)
+# - Inserted print(f"recall rate: {recall_rate}")
+# - Inserted a check to discard the computation of the AP for the given query if no
+# ground truth boxes have been found (happens only with training queries)
 
 import os.path as osp
 
@@ -163,6 +169,7 @@ def eval_search_prw(
         # 4. Save result for JSON dump
         new_entry = {
             "query_img": str(query_imname),
+            "query_pid": int(query_pid),  # disambiguates identity within a frame
             "query_roi": list(map(float, list(query_roi.squeeze()))),
             "query_gt": query_gts,
             "gallery": [],
