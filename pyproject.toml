@@ -1,5 +1,5 @@
 [project]
-name = "synthetic-generation-alignment"
+name = "person-search"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -9,7 +9,6 @@ dependencies = [
     "bitsandbytes>=0.49.2",
     "matplotlib>=3.10.8",
     "numpy>=1.26.4",
-    "peft>=0.18.1",
     "pillow>=12.2.0",
     "rfdetr>=1.6.5.post0",
     "scikit-learn>=1.7.2",
@@ -19,7 +18,7 @@ dependencies = [
     "torch==2.8.0",
     "tqdm>=4.67.3",
     "transformers>=5.7.0",
-    "trl==0.11.0",
     "ultralytics>=8.4.46",
-    "wandb>=0.25.1",
+    "pytorch-metric-learning>=2.5.0",
+    "torchvision>=0.20.0",
 ]

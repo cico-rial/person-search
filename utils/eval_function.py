@@ -3,6 +3,12 @@
 # - Removed code related to CBGM (Context Bipartite Graph Matching)
 # - Adjusted top-k accuracy calculation to only consider top-1 accuracy
 # - Clarified function docstring and added recall rate scaling explanation
+# Additional modification made by the author of this repo (Leonardo Chiarioni)
+# - Exposed the query pid in the result dictionary
+# - Exposed the recall_rate to evaluate the detector only (when validate_detector_only=True)
+# - Inserted print(f"recall rate: {recall_rate}")
+# - Inserted a check to discard the computation of the AP for the given query if no
+# ground truth boxes have been found (happens only with training queries)
 
 import os.path as osp
 
@@ -29,6 +35,7 @@ def eval_search_prw(
     query_box_feats,
     det_thresh,
     ignore_cam_id=True,
+    validate_detector_only=False
 ):
     """
     Evaluate person search performance on PRW dataset.
@@ -43,6 +50,10 @@ def eval_search_prw(
         ignore_cam_id (bool): whether to ignore camera ID during evaluation. If set to False,
                             gallery images from the same camera as the query will be excluded. Default: True.
     """
+    if validate_detector_only:
+        gallery_feats   = [np.zeros((det.shape[0], 4)) for det in gallery_dets] # null embedding
+        query_box_feats = [np.zeros(4) for det in range(len(query_dataset))] # null embedding
+
     assert len(gallery_dataset) == len(gallery_dets)
     assert len(gallery_dataset) == len(gallery_feats)
     assert len(query_dataset) == len(query_box_feats)
@@ -158,6 +169,7 @@ def eval_search_prw(
         # 4. Save result for JSON dump
         new_entry = {
             "query_img": str(query_imname),
+            "query_pid": int(query_pid),  # disambiguates identity within a frame
             "query_roi": list(map(float, list(query_roi.squeeze()))),
             "query_gt": query_gts,
             "gallery": [],
@@ -173,6 +185,11 @@ def eval_search_prw(
                 }
             )
         ret["results"].append(new_entry)
+    
+    print(f"recall rate: {recall_rate}")
+
+    if validate_detector_only:
+        return recall_rate # prints and returns the recall_rate only
 
     print("search ranking:")
     mAP = np.mean(aps)
@@ -182,8 +199,6 @@ def eval_search_prw(
         print("  top-{:2d} = {:.2%}".format(k, accs[i]))
 
     # write_json(ret, "vis/results.json")
-
-    print(f"recall rate: {recall_rate}")
 
     ret["mAP"] = np.mean(aps)
     ret["accs"] = accs
